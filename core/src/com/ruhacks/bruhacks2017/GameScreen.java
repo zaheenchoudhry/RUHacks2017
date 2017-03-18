@@ -8,15 +8,30 @@ public class GameScreen extends AbstractScreen  {
 
     private Player player;
     private PlatformObject platformObject;
+    private BackgroundManager backgroundManager;
+    private float[] backgroundColor;
 
     public GameScreen(final MainActivity game) {
         super(game);
 
-        player = new Player(UNIT);
+        player = new Player(UNIT_X, UNIT_Y);
         platformObject = new PlatformObject(UNIT);
+        backgroundColor = new float[3];
 
+        backgroundManager = new BackgroundManager(UNIT_X, UNIT_Y);
+        backgroundManager.setMountainColor(Themes.BLUE_DAY.getColors());
+        setBackgroundColor(Themes.BLUE_DAY);
+
+        //this.addActor(platformObject);
+        this.addActor(backgroundManager);
         this.addActor(player);
-        this.addActor(platformObject);
+    }
+
+    public void setBackgroundColor(Themes theme) {
+        float[] color = theme.getBackgroundColor();
+        backgroundColor[0] = color[0];
+        backgroundColor[1] = color[1];
+        backgroundColor[2] = color[2];
     }
 
     @Override
@@ -48,6 +63,7 @@ public class GameScreen extends AbstractScreen  {
 
     @Override
     public void update() {
+        backgroundManager.update();
         player.update();
         /*
         if (player.getY() <= platformObject.getY() + platformObject.getHeight() &&
@@ -65,7 +81,7 @@ public class GameScreen extends AbstractScreen  {
     @Override
     public void render(float delta) {
         update();
-        Gdx.gl.glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+        Gdx.gl.glClearColor(backgroundColor[0], backgroundColor[1], backgroundColor[2], 1.0f);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
         this.act(delta);
         this.draw();
@@ -85,5 +101,6 @@ public class GameScreen extends AbstractScreen  {
         super.dispose();
         player.dispose();
         platformObject.dispose();
+        backgroundManager.dispose();
     }
 }

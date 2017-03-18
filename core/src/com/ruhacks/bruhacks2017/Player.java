@@ -7,31 +7,28 @@ import com.badlogic.gdx.scenes.scene2d.ui.Image;
 
 public class Player extends Group {
 
-    float unit;
-    private Image item;
-    private Pixmap pixmap;
+    float unitX, unitY;
+    private Image player;
     private Texture texture;
-    private float speedConstant, currentSpeed;
+    //private float speedConstant, currentSpeed;
     private float width, height;
 
-    public Player(float unit) {
-        this.unit = unit;
-        speedConstant = unit * 0.1f;
-        currentSpeed = 0;
-        width = 10f * unit;
-        height = 10f * unit;
+    public Player(float unitX, float unitY) {
+        this.unitX = unitX;
+        this.unitY = unitY;
+        //speedConstant = unit * 0.1f;
+        //currentSpeed = 0;
+        height = 15f * unitY;
+        width = height * (117f / 200f);
 
-        pixmap = new Pixmap(1, 1, Pixmap.Format.RGBA8888);
-        pixmap.setColor(0, 0, 0, 1.0f);
-        pixmap.fillRectangle(0, 0, 1, 1);
-        texture = new Texture(pixmap);
-        item = new Image(texture);
-        item.setSize(width, height);
+        texture = new Texture("Player.png");
+        player = new Image(texture);
+        player.setSize(width, height);
 
-        this.setX(unit * 50f);
-        this.setY(unit * 90f);
+        this.setX(unitX * 25f);
+        this.setY(unitY * 30f);
 
-        this.addActor(item);
+        this.addActor(player);
     }
 
     public float getWidth() {
@@ -42,26 +39,25 @@ public class Player extends Group {
         return height;
     }
 
-    public float getSpeed() {
-        return currentSpeed;
-    }
+    //public float getSpeed() {
+        //return currentSpeed;
+    //}
 
     public void setSpeed(float speed) {
-        currentSpeed = speed;
+        //currentSpeed = speed;
     }
 
     public void update() {
-        currentSpeed += speedConstant;
-        this.setY(this.getY() - currentSpeed);
+        //currentSpeed += speedConstant;
+        //this.setY(this.getY() - currentSpeed);
     }
 
     public void stopFall() {
-        currentSpeed = 0;
-        speedConstant = 0;
+        //currentSpeed = 0;
+        //speedConstant = 0;
     }
 
     public void dispose() {
-        pixmap.dispose();
         texture.dispose();
     }
 }
