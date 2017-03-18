@@ -8,8 +8,8 @@ import com.badlogic.gdx.scenes.scene2d.ui.Image;
 public class Player extends Group {
 
     float unitX, unitY;
-    private Image player;
-    private Texture texture;
+    private Image player, flame;
+    private Texture playerTexture, flameTexture;
     //private float speedConstant, currentSpeed;
     private float width, height;
 
@@ -21,15 +21,20 @@ public class Player extends Group {
         height = 15f * unitY;
         width = height * (117f / 200f);
 
-        texture = new Texture("Player.png");
-        player = new Image(texture);
+        playerTexture = new Texture("Player.png");
+        player = new Image(playerTexture);
         player.setSize(width, height);
+
+        flameTexture = new Texture("Triangle.png");
+        flame = new Image(flameTexture);
+        flame.setColor(1.0f, 0.7f, 0, 1.0f);
 
         this.setX(unitX * 25f);
         this.setY(unitY * 30f);
 
         this.setOrigin(width / 2f, height / 2f);
 
+        this.addActor(flame);
         this.addActor(player);
     }
 
@@ -49,8 +54,16 @@ public class Player extends Group {
         //currentSpeed = speed;
     }
 
-    public void update() {
-        this.rotateBy(-this.getRotation() / 20f);
+    public void update(float playerSpeed) {
+        this.rotateBy(-this.getRotation() / 8f);
+
+        float flameWidth = (float)Math.random() * 10f + 9f;
+        float flameHeight = (float)Math.random() * 10f + 15f + 40f * (playerSpeed / 40f);
+        flame.setSize(flameWidth, flameHeight);
+        flame.setOrigin(flameWidth / 2f, flameHeight / 2f);
+        flame.setRotation((float)Math.toDegrees(Math.PI) * 0.97f);
+        flame.setX(9f - flameWidth / 2f);
+        flame.setY(20f - flameHeight);
         //currentSpeed += speedConstant;
         //this.setY(this.getY() - currentSpeed);
     }
@@ -61,6 +74,7 @@ public class Player extends Group {
     }
 
     public void dispose() {
-        texture.dispose();
+        playerTexture.dispose();
+        flameTexture.dispose();
     }
 }
