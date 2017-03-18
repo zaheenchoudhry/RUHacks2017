@@ -23,6 +23,7 @@ public class GameScreen extends AbstractScreen  {
     private int lighteningCounter;
     private Image lighteningImage;
     private float lighteningAlpha;
+    private RainManager rainManager;
 
     public GameScreen(final MainActivity game) {
         super(game);
@@ -33,6 +34,7 @@ public class GameScreen extends AbstractScreen  {
         player = new Player(UNIT_X, UNIT_Y);
         backgroundColor = new float[3];
 
+        rainManager = new RainManager(UNIT_X, UNIT_Y);
         backgroundManager = new BackgroundManager(UNIT_X, UNIT_Y);
         backgroundManager.setMountainColor(Themes.BLUE_NIGHT.getColors());
         setBackgroundColor(Themes.BLUE_NIGHT);
@@ -52,6 +54,7 @@ public class GameScreen extends AbstractScreen  {
         this.addActor(lighteningImage);
         this.addActor(backgroundManager);
         this.addActor(player);
+        this.addActor(rainManager);
     }
 
     public void setBackgroundColor(Themes theme) {
@@ -82,6 +85,7 @@ public class GameScreen extends AbstractScreen  {
 
     @Override
     public void update() {
+        rainManager.update();
         lighteningCounter--;
         if (lighteningCounter == 10) {
             lighteningImage.setColor(1.0f, 1.0f, 1.0f, 1.0f);
