@@ -10,6 +10,7 @@ public class GameScreen extends AbstractScreen  {
     private PlatformObject platformObject;
     private BackgroundManager backgroundManager;
     private float[] backgroundColor;
+    private float targetX, targetY;
 
     public GameScreen(final MainActivity game) {
         super(game);
@@ -19,8 +20,8 @@ public class GameScreen extends AbstractScreen  {
         backgroundColor = new float[3];
 
         backgroundManager = new BackgroundManager(UNIT_X, UNIT_Y);
-        backgroundManager.setMountainColor(Themes.BLUE_DAY.getColors());
-        setBackgroundColor(Themes.BLUE_DAY);
+        backgroundManager.setMountainColor(Themes.BLUE_NIGHT.getColors());
+        setBackgroundColor(Themes.BLUE_NIGHT);
 
         //this.addActor(platformObject);
         this.addActor(backgroundManager);
@@ -47,24 +48,36 @@ public class GameScreen extends AbstractScreen  {
     }
 
     @Override
-    public boolean touchDown(int screenX, int screenY, int pointer, int button) {
-        return false;
-    }
-
-    @Override
-    public boolean touchUp(int screenX, int screenY, int pointer, int button) {
-        return false;
-    }
-
-    @Override
-    public boolean touchDragged(int screenX, int screenY, int pointer) {
-        return false;
+    public boolean mouseMoved(int screenX, int screenY) {
+        targetX = screenX;
+        targetY = SCREEN_HEIGHT - screenY;
+        return super.mouseMoved(screenX, screenY);
     }
 
     @Override
     public void update() {
-        backgroundManager.update();
+        float xMove = (targetX - player.getX()) / 15f;
+        float yMove = (targetY - player.getY()) / 15f;
+
+        backgroundManager.update((player.getX() - SCREEN_WIDTH / 2f) / SCREEN_WIDTH, (player.getY() - SCREEN_HEIGHT / 2f) / SCREEN_HEIGHT);
+
+        if (xMove < 0 && player.getScaleX() > 0) {
+            player.setScaleX(-1);
+            player.setX(player.getX() + player.getWidth() / 2f);
+        } else if (xMove > 0 && player.getScaleX() < 0) {
+            player.setScaleX(1);
+            player.setX(player.getX() - player.getWidth() / 2f);
+        }
+
+        float rotateAmount = Math.min(1f, (Math.abs(xMove) + Math.abs(yMove)) / 2f);
+        float rotation = (float) Math.toDegrees(Math.PI / -2f + Math.atan(yMove / (xMove))) + ((xMove < 0) ? 180f : 0);
+        player.rotateBy((rotation - player.getRotation()) / (30f - (29f * rotateAmount)));
+
+        player.setX(player.getX() + xMove);
+        player.setY(player.getY() + yMove);
+
         player.update();
+
         /*
         if (player.getY() <= platformObject.getY() + platformObject.getHeight() &&
                 player.getX() + player.getWidth() > platformObject.getX() &&

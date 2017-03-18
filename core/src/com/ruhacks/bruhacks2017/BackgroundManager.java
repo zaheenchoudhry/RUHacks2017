@@ -13,6 +13,7 @@ public class BackgroundManager extends Group {
     private Pixmap squarePixmap;
     private Texture mountainTexture, squareTexture;
     private float[][] mountainColor;
+    private Group[] mountainGroup;
     private ArrayList<ArrayList<Image>> mountainList;
     private Image[] squares;
 
@@ -22,6 +23,7 @@ public class BackgroundManager extends Group {
         mountainColor = new float[3][3];
         mountainList = new ArrayList<ArrayList<Image>>();
         squares = new Image[3];
+        mountainGroup = new Group[3];
 
         squarePixmap = new Pixmap(1, 1, Pixmap.Format.RGBA8888);
         squarePixmap.setColor(1.0f, 1.0f, 1.0f, 1.0f);
@@ -50,13 +52,14 @@ public class BackgroundManager extends Group {
         heightRange[0][1] = 40f;
         heightRange[1][0] = 25f;
         heightRange[1][1] = 35f;
-        heightRange[2][0] = 40f;
-        heightRange[2][1] = 60f;
+        heightRange[2][0] = 35f;
+        heightRange[2][1] = 50f;
 
         for (int i = 2; i >= 0; --i) {
             float previousPosition = -50f * unitX;
             float previousWidth = 0;
             ArrayList<Image> mountains = new ArrayList<Image>();
+            mountainGroup[i] = new Group();
             while (previousPosition <= unitX * 130f) {
                 float mountainWidth = (float) Math.random() * ((widthRange[i][1] - widthRange[i][0]) * unitX) + (widthRange[i][0] * unitX);
                 float mountainHeight = (float) Math.random() * ((heightRange[i][1] - heightRange[i][0]) * unitY) + (heightRange[i][0] * unitY);
@@ -65,20 +68,21 @@ public class BackgroundManager extends Group {
                 Image mountain = new Image(mountainTexture);
                 mountain.setSize(mountainWidth, mountainHeight);
                 mountain.setX(previousPosition);
-                mountain.setY(10 * unitY * (i + 1));
+                mountain.setY(10f * unitY * (i));
                 mountain.setColor(0.2f + (0.15f * (float)i), 0.2f + (0.15f * (float)i), 0.2f + (0.15f * (float)i), 1.0f);
                 previousPosition += mountainDisplacement;
                 mountains.add(mountain);
-                this.addActor(mountain);
+                mountainGroup[i].addActor(mountain);
             }
+            this.addActor(mountainGroup[i]);
             mountainList.add(mountains);
             squares[i] = new Image(squareTexture);
             squares[i].setWidth(200f * unitX);
-            squares[i].setHeight((30f + 10f * (i + 1)) * unitY);
+            squares[i].setHeight((30f + 10f * (i)) * unitY);
             squares[i].setX(-50f * unitX);
             squares[i].setY(-30f * unitY);
             squares[i].setColor(0.2f + (0.15f * (float)i), 0.2f + (0.15f * (float)i), 0.2f + (0.15f * (float)i), 1.0f);
-            this.addActor(squares[i]);
+            mountainGroup[i].addActor(squares[i]);
         }
     }
 
@@ -95,8 +99,11 @@ public class BackgroundManager extends Group {
 
     }
 
-    public void update() {
-
+    public void update(float xOffset, float yOffset) {
+        for (int i = 0; i < 3; ++i) {
+            mountainGroup[i].setX(10f * unitX * (3 - i) * -xOffset);
+            mountainGroup[i].setY(10f * unitY * (3 - i) * -yOffset);
+        }
     }
 
     public void dispose() {

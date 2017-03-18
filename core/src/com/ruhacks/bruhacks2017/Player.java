@@ -28,6 +28,8 @@ public class Player extends Group {
         this.setX(unitX * 25f);
         this.setY(unitY * 30f);
 
+        this.setOrigin(width / 2f, height / 2f);
+
         this.addActor(player);
     }
 
@@ -48,6 +50,7 @@ public class Player extends Group {
     }
 
     public void update() {
+        this.rotateBy(-this.getRotation() / 20f);
         //currentSpeed += speedConstant;
         //this.setY(this.getY() - currentSpeed);
     }
