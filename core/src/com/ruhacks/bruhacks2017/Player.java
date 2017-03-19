@@ -26,7 +26,7 @@ public class Player extends Group {
         player.setSize(width, height);
 
         this.setX(unitX * 25f);
-        this.setY(unitY * 30f);
+        this.setY(0f);
 
         this.setOrigin(width / 2f, height / 2f);
 
