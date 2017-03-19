@@ -2,6 +2,7 @@ package com.ruhacks.bruhacks2017;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputMultiplexer;
+import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
@@ -29,12 +30,16 @@ public class GameScreen extends AbstractScreen  {
     private Image moon, moonGlow;
     private float addX;
     private float addY;
+    private Sound thunder;
 
     public GameScreen(final MainActivity game) throws IOException {
         super(game);
         LeapClient leap = new LeapClient(this);
         leap.start();
 
+        thunder = Gdx.audio.newSound(Gdx.files.internal("thunder.mp3"));
+        Sound rain = Gdx.audio.newSound(Gdx.files.internal("rain.wav"));
+        rain.setLooping(rain.play(0.6f), true);
         lighteningAlpha = 0;
         lighteningCounter = 10;
         smokeCounter = 0;
@@ -146,7 +151,8 @@ public class GameScreen extends AbstractScreen  {
         } else if (lighteningCounter == 0) {
             lighteningImage.setColor(1.0f, 1.0f, 1.0f, 1.0f);
             lighteningAlpha = 1.0f;
-            lighteningCounter = (int)(Math.random() * 100 + 150);
+            lighteningCounter = (int)(Math.random() * 200 + 280);
+            thunder.play(1f);
         }
 
         if (lighteningAlpha > 0) {
@@ -155,6 +161,7 @@ public class GameScreen extends AbstractScreen  {
                 lighteningAlpha = 0;
             }
             lighteningImage.setColor(1.0f, 1.0f, 1.0f, lighteningAlpha);
+
         }
 
         if (smokeCounter <= 0) {
