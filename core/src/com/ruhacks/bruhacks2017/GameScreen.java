@@ -2,6 +2,7 @@ package com.ruhacks.bruhacks2017;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputMultiplexer;
+import com.badlogic.gdx.graphics.Cursor;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
@@ -26,10 +27,14 @@ public class GameScreen extends AbstractScreen  {
     private RainManager rainManager;
     private ArrayList<Image> stars;
     private Image moon, moonGlow;
+    private ArrayList<Enemy> enemies;
+    private int enemySpawnCount;
+    private ArrayList<Float[]> previousPlayerPositions;
 
     public GameScreen(final MainActivity game) {
         super(game);
 
+        enemySpawnCount = 250;
         lighteningAlpha = 0;
         lighteningCounter = 10;
         smokeCounter = 0;
@@ -38,8 +43,8 @@ public class GameScreen extends AbstractScreen  {
 
         rainManager = new RainManager(UNIT_X, UNIT_Y);
         backgroundManager = new BackgroundManager(UNIT_X, UNIT_Y);
-        backgroundManager.setMountainColor(Themes.BLUE_NIGHT.getColors());
-        setBackgroundColor(Themes.BLUE_NIGHT);
+        backgroundManager.setMountainColor(Themes.PURPLE_NIGHT.getColors());
+        setBackgroundColor(Themes.PURPLE_NIGHT);
 
         this.starPixmap = new Pixmap((int)(UNIT_Y * 0.5f), (int)(UNIT_Y * 0.5f), Pixmap.Format.RGBA8888);
         starPixmap.setColor(1.0f, 1.0f, 1.0f, 1.0f);
@@ -83,6 +88,13 @@ public class GameScreen extends AbstractScreen  {
         lighteningImage.setSize(SCREEN_WIDTH, SCREEN_HEIGHT);
         lighteningImage.setColor(1.0f, 1.0f, 1.0f, lighteningAlpha);
 
+        enemies = new ArrayList<Enemy>();
+
+        previousPlayerPositions = new ArrayList<Float[]>();
+        for (int i = 0; i < 10; ++i) {
+            previousPlayerPositions.add(new Float[]{0f, 0f});
+        }
+
         //this.addActor(platformObject);
         this.addActor(lighteningImage);
         this.addActor(moonGlow);
@@ -90,6 +102,9 @@ public class GameScreen extends AbstractScreen  {
         this.addActor(backgroundManager);
         this.addActor(player);
         this.addActor(rainManager);
+
+        Cursor cursor = Gdx.graphics.newCursor(squarePixmap, 0, 0);
+        Gdx.graphics.setCursor(cursor);
     }
 
     public void setBackgroundColor(Themes theme) {
@@ -120,6 +135,29 @@ public class GameScreen extends AbstractScreen  {
 
     @Override
     public void update() {
+        enemySpawnCount--;
+
+        previousPlayerPositions.remove(0);
+        previousPlayerPositions.add(new Float[]{player.getX(), player.getY()});
+
+        if (enemySpawnCount == 0) {
+            enemySpawnCount = 250;
+            Enemy enemy = new Enemy(UNIT_X, UNIT_Y);
+            enemy.setX(-50f * UNIT_X + (Math.random() > 0.5 ? SCREEN_WIDTH * 2f : 0));
+            enemy.setY((float)Math.random() * SCREEN_HEIGHT);
+            enemies.add(enemy);
+            this.addActor(enemy);
+        }
+
+        for (int i = 0; i < enemies.size(); i++) {
+            enemies.get(i).update(previousPlayerPositions.get(0));
+            if (enemies.get(i).isDead() && enemies.get(i).getY() + enemies.get(i).getHeight() < 0) {
+                enemies.get(i).remove();
+                enemies.remove(enemies.get(i));
+                i--;
+            }
+        }
+
         rainManager.update();
         lighteningCounter--;
         if (lighteningCounter == 10) {
