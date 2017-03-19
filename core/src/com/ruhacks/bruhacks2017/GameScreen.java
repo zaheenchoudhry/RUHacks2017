@@ -7,6 +7,7 @@ import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
 
+import java.io.IOException;
 import java.util.ArrayList;
 
 public class GameScreen extends AbstractScreen  {
@@ -26,15 +27,21 @@ public class GameScreen extends AbstractScreen  {
     private RainManager rainManager;
     private ArrayList<Image> stars;
     private Image moon, moonGlow;
+    private float addX;
+    private float addY;
 
-    public GameScreen(final MainActivity game) {
+    public GameScreen(final MainActivity game) throws IOException {
         super(game);
+        LeapClient leap = new LeapClient(this);
+        leap.start();
 
         lighteningAlpha = 0;
         lighteningCounter = 10;
         smokeCounter = 0;
         player = new Player(UNIT_X, UNIT_Y);
         backgroundColor = new float[3];
+        addX = 0;
+        addY = 0;
 
         rainManager = new RainManager(UNIT_X, UNIT_Y);
         backgroundManager = new BackgroundManager(UNIT_X, UNIT_Y);
@@ -90,6 +97,17 @@ public class GameScreen extends AbstractScreen  {
         this.addActor(backgroundManager);
         this.addActor(player);
         this.addActor(rainManager);
+    }
+
+    public void setXY(float x, float y) {
+        if (y > 1) {
+            if (y <= 80 && y > 1) {
+                addY = 80;
+            } else {
+                addX = x;
+                addY = y;
+            }
+        }
     }
 
     public void setBackgroundColor(Themes theme) {
@@ -176,8 +194,10 @@ public class GameScreen extends AbstractScreen  {
             smokeAlpha.remove(0);
         }
 
-        float xMove = (targetX - player.getX()) / 15f;
-        float yMove = (targetY - player.getY()) / 15f;
+        float xTarget = (addX + 200) / 500 * SCREEN_WIDTH;
+        float yTarget = (addY - 80) / 600 * SCREEN_HEIGHT;
+        float xMove = (xTarget - player.getX()) / 15f;
+        float yMove = (yTarget - player.getY()) / 15f;
         float speed = (float)Math.sqrt(xMove * xMove + yMove * yMove);
         smokeCounter -= speed;
 
