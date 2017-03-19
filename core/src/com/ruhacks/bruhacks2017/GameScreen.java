@@ -18,12 +18,14 @@ public class GameScreen extends AbstractScreen  {
     private ArrayList<Image> smokeList;
     private ArrayList<Float> smokeAlpha;
     private float smokeCounter;
-    private Pixmap squarePixmap;
-    private Texture squareTexture;
+    private Pixmap squarePixmap, starPixmap, moonPixmap;
+    private Texture squareTexture, starTexture, moonTexture, moonGlowTexture;
     private int lighteningCounter;
     private Image lighteningImage;
     private float lighteningAlpha;
     private RainManager rainManager;
+    private ArrayList<Image> stars;
+    private Image moon, moonGlow;
 
     public GameScreen(final MainActivity game) {
         super(game);
@@ -39,6 +41,37 @@ public class GameScreen extends AbstractScreen  {
         backgroundManager.setMountainColor(Themes.BLUE_NIGHT.getColors());
         setBackgroundColor(Themes.BLUE_NIGHT);
 
+        this.starPixmap = new Pixmap((int)(UNIT_Y * 0.5f), (int)(UNIT_Y * 0.5f), Pixmap.Format.RGBA8888);
+        starPixmap.setColor(1.0f, 1.0f, 1.0f, 1.0f);
+        starPixmap.fillCircle((int) (UNIT_Y * 0.25f), (int) (UNIT_Y * 0.25f), (int) (UNIT_Y * 0.25f));
+        this.starTexture = new Texture(starPixmap);
+
+        float moonSize = (float)Math.random() * 15f + 25f;
+        this.moonPixmap = new Pixmap((int)(UNIT_Y * moonSize), (int)(UNIT_Y * moonSize), Pixmap.Format.RGBA8888);
+        moonPixmap.setColor(1.0f, 1.0f, 1.0f, 1.0f);
+        moonPixmap.fillCircle((int) (UNIT_Y * moonSize / 2f), (int) (UNIT_Y * moonSize / 2f), (int) (UNIT_Y * moonSize / 2f));
+        this.moonTexture = new Texture(moonPixmap);
+        moon = new Image(moonTexture);
+        moon.setX(SCREEN_WIDTH * (0.1f + 0.8f * (float)Math.random()));
+        moon.setY(SCREEN_HEIGHT * (0.5f + 0.1f * (float)Math.random()));
+        moonGlowTexture = new Texture("Glow3.png");
+        moonGlow = new Image(moonGlowTexture);
+        moonGlow.setSize(moonSize * UNIT_Y * 1.2f, moonSize * UNIT_Y * 1.2f);
+        moonGlow.setX(moon.getX() - moonSize * UNIT_Y * 0.1f);
+        moonGlow.setY(moon.getY() - moonSize * UNIT_Y * 0.1f);
+        moonGlow.setColor(1.0f, 1.0f, 1.0f, 0.7f);
+
+        stars = new ArrayList<Image>();
+        for (int j = 0; j < 5; ++j) {
+            for (int i = 0; i < 8; ++i) {
+                Image star = new Image(starTexture);
+                star.setColor(1.0f, 1.0f, 1.0f, 0.4f + 0.6f * (float) Math.random());
+                star.setX(SCREEN_WIDTH * 0.2f * (float)j + SCREEN_WIDTH * 0.2f * (float) Math.random());
+                star.setY(SCREEN_HEIGHT - 0.7f * SCREEN_HEIGHT * (float) Math.random());
+                this.addActor(star);
+            }
+        }
+
         squarePixmap = new Pixmap(1, 1, Pixmap.Format.RGBA8888);
         squarePixmap.setColor(1.0f, 1.0f, 1.0f, 1.0f);
         squarePixmap.fillRectangle(0, 0, 1, 1);
@@ -52,6 +85,8 @@ public class GameScreen extends AbstractScreen  {
 
         //this.addActor(platformObject);
         this.addActor(lighteningImage);
+        this.addActor(moonGlow);
+        this.addActor(moon);
         this.addActor(backgroundManager);
         this.addActor(player);
         this.addActor(rainManager);
@@ -145,7 +180,6 @@ public class GameScreen extends AbstractScreen  {
         float yMove = (targetY - player.getY()) / 15f;
         float speed = (float)Math.sqrt(xMove * xMove + yMove * yMove);
         smokeCounter -= speed;
-        System.out.println(speed);
 
         backgroundManager.update((player.getX() - SCREEN_WIDTH / 2f) / SCREEN_WIDTH, (player.getY() - SCREEN_HEIGHT / 2f) / SCREEN_HEIGHT);
 
