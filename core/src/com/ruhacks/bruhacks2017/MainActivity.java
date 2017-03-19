@@ -2,13 +2,19 @@ package com.ruhacks.bruhacks2017;
 
 import com.badlogic.gdx.Game;
 
+import java.io.IOException;
+
 public class MainActivity extends Game {
 
 	private GameScreen gameScreen;
 	
 	@Override
 	public void create () {
-		gameScreen = new GameScreen(this);
+		try {
+			gameScreen = new GameScreen(this);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 		setScreen(gameScreen);
 	}
 

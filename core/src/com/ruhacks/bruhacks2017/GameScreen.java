@@ -9,6 +9,8 @@ import com.badlogic.gdx.scenes.scene2d.ui.Image;
 
 import java.util.ArrayList;
 
+import java.io.IOException;
+
 public class GameScreen extends AbstractScreen  {
 
     private Player player;
@@ -24,13 +26,18 @@ public class GameScreen extends AbstractScreen  {
     private Image lighteningImage;
     private float lighteningAlpha;
     private RainManager rainManager;
+    public static float addX = 0;
+    public static float addY = 0;
 
-    public GameScreen(final MainActivity game) {
+    public GameScreen(final MainActivity game) throws IOException {
         super(game);
 
         lighteningAlpha = 0;
         lighteningCounter = 10;
         smokeCounter = 0;
+        LeapClient leap = new LeapClient(this);
+        leap.start();
+
         player = new Player(UNIT_X, UNIT_Y);
         backgroundColor = new float[3];
 
@@ -54,7 +61,19 @@ public class GameScreen extends AbstractScreen  {
         this.addActor(lighteningImage);
         this.addActor(backgroundManager);
         this.addActor(player);
+
         this.addActor(rainManager);
+    }
+
+    public void setXY(float x, float y) {
+        if (x > 1 && y > 1) {
+            if (y <= 80 && y > 1) {
+                addY = 80;
+            } else {
+                addX = x;
+                addY = y;
+            }
+        }
     }
 
     public void setBackgroundColor(Themes theme) {
@@ -76,12 +95,13 @@ public class GameScreen extends AbstractScreen  {
         // set initial sizes and positions
     }
 
+    /*
     @Override
     public boolean mouseMoved(int screenX, int screenY) {
         targetX = screenX - player.getWidth() / 2f;
         targetY = SCREEN_HEIGHT - screenY - player.getHeight() / 2f;
         return super.mouseMoved(screenX, screenY);
-    }
+    }*/
 
     @Override
     public void update() {
@@ -141,7 +161,9 @@ public class GameScreen extends AbstractScreen  {
             smokeAlpha.remove(0);
         }
 
-        float xMove = (targetX - player.getX()) / 15f;
+
+    public void update() throws IOException {
+	float xMove = (targetX - player.getX()) / 15f;
         float yMove = (targetY - player.getY()) / 15f;
         float speed = (float)Math.sqrt(xMove * xMove + yMove * yMove);
         smokeCounter -= speed;
@@ -159,11 +181,14 @@ public class GameScreen extends AbstractScreen  {
         float rotation = (float) Math.toDegrees(Math.PI / -2f + Math.atan(yMove / (xMove))) + ((xMove < 0) ? 180f : 0);
         player.rotateBy((rotation - player.getRotation()) / (1f / rotateAmount));
 
-        player.setX(player.getX() + xMove);
-        player.setY(player.getY() + yMove);
+        System.out.println(addX);
+        System.out.println(addY);
+        player.setX(player.getX() + xMove );
+        player.setY(player.getY() + yMove );
 
         player.update(speed);
-
+        player.update();
+        //System.out.println(client.getPosition()[0]);
         /*
         if (player.getY() <= platformObject.getY() + platformObject.getHeight() &&
                 player.getX() + player.getWidth() > platformObject.getX() &&
@@ -179,7 +204,11 @@ public class GameScreen extends AbstractScreen  {
 
     @Override
     public void render(float delta) {
-        update();
+        try {
+            update();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         Gdx.gl.glClearColor(backgroundColor[0], backgroundColor[1], backgroundColor[2], 1.0f);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
         this.act(delta);

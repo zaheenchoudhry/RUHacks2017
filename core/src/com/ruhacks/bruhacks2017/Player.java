@@ -30,7 +30,7 @@ public class Player extends Group {
         flame.setColor(1.0f, 0.7f, 0, 1.0f);
 
         this.setX(unitX * 25f);
-        this.setY(unitY * 30f);
+        this.setY(0f);
 
         this.setOrigin(width / 2f, height / 2f);
 

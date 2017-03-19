@@ -6,6 +6,8 @@ import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 
+import java.io.IOException;
+
 public abstract class AbstractScreen extends Stage implements Screen {
 
     public static final float SCREEN_WIDTH = Gdx.graphics.getWidth();
@@ -25,5 +27,5 @@ public abstract class AbstractScreen extends Stage implements Screen {
         this.setViewport(new FitViewport(SCREEN_WIDTH, SCREEN_HEIGHT, camera));
     }
 
-    public abstract void update();
+    public abstract void update() throws IOException;
 }
