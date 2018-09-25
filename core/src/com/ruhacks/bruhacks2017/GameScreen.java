@@ -2,16 +2,24 @@ package com.ruhacks.bruhacks2017;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputMultiplexer;
+import com.badlogic.gdx.audio.Sound;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Cursor;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
+import com.badlogic.gdx.scenes.scene2d.ui.Label;
 
+
+import java.io.IOException;
 import java.util.ArrayList;
 
 public class GameScreen extends AbstractScreen  {
 
+    private boolean dead;
     private Player player;
     private BackgroundManager backgroundManager;
     private float[] backgroundColor;
@@ -19,32 +27,48 @@ public class GameScreen extends AbstractScreen  {
     private ArrayList<Image> smokeList;
     private ArrayList<Float> smokeAlpha;
     private float smokeCounter;
-    private Pixmap squarePixmap, starPixmap, moonPixmap;
-    private Texture squareTexture, starTexture, moonTexture, moonGlowTexture;
+    private Pixmap squarePixmap, starPixmap, moonPixmap, explosionPixmap;
+    private Texture squareTexture, starTexture, moonTexture, moonGlowTexture, explosionTexture;
+    private Texture enemyTexture, flameTexture;
     private int lighteningCounter;
     private Image lighteningImage;
     private float lighteningAlpha;
     private RainManager rainManager;
     private ArrayList<Image> stars;
-    private Image moon, moonGlow;
+    private Image moon, moonGlow, explosion;
     private ArrayList<Enemy> enemies;
-    private int enemySpawnCount;
+    private int enemySpawnCount, spawnCountResetVal, scoreCount;
     private ArrayList<Float[]> previousPlayerPositions;
+    private Label score;
+    private BitmapFont font;
+    private float addX;
+    private float addY;
+    private Sound thunder;
 
     public GameScreen(final MainActivity game) {
         super(game);
 
-        enemySpawnCount = 250;
+        thunder = Gdx.audio.newSound(Gdx.files.internal("thunder.mp3"));
+        Sound rain = Gdx.audio.newSound(Gdx.files.internal("rain.wav"));
+        rain.setLooping(rain.play(0.6f), true);
+        dead = false;
+
+        scoreCount = 0;
+        enemySpawnCount = 300;
+        spawnCountResetVal = 280;
         lighteningAlpha = 0;
         lighteningCounter = 10;
         smokeCounter = 0;
         player = new Player(UNIT_X, UNIT_Y);
         backgroundColor = new float[3];
+        addX = 0;
+        addY = 0;
 
         rainManager = new RainManager(UNIT_X, UNIT_Y);
         backgroundManager = new BackgroundManager(UNIT_X, UNIT_Y);
-        backgroundManager.setMountainColor(Themes.PURPLE_NIGHT.getColors());
-        setBackgroundColor(Themes.PURPLE_NIGHT);
+        Themes theme = Themes.values()[(int)(Math.random() * Themes.values().length)];
+        backgroundManager.setMountainColor(theme.getColors());
+        setBackgroundColor(theme);
 
         this.starPixmap = new Pixmap((int)(UNIT_Y * 0.5f), (int)(UNIT_Y * 0.5f), Pixmap.Format.RGBA8888);
         starPixmap.setColor(1.0f, 1.0f, 1.0f, 1.0f);
@@ -65,6 +89,25 @@ public class GameScreen extends AbstractScreen  {
         moonGlow.setX(moon.getX() - moonSize * UNIT_Y * 0.1f);
         moonGlow.setY(moon.getY() - moonSize * UNIT_Y * 0.1f);
         moonGlow.setColor(1.0f, 1.0f, 1.0f, 0.7f);
+
+        this.explosionPixmap = new Pixmap((int)(UNIT_Y * 150f), (int)(UNIT_Y * 150f), Pixmap.Format.RGBA8888);
+        explosionPixmap.setColor(1.0f, 1.0f, 1.0f, 1.0f);
+        explosionPixmap.fillCircle((int) (UNIT_Y * 75f), (int) (UNIT_Y * 75f), (int) (UNIT_Y * 75f));
+        this.explosionTexture = new Texture(explosionPixmap);
+        explosion = new Image(explosionTexture);
+        explosion.setScale(0, 0);
+
+        FreeTypeFontGenerator generator = new FreeTypeFontGenerator(Gdx.files.internal("font.ttf"));
+        FreeTypeFontGenerator.FreeTypeFontParameter parameter = new FreeTypeFontGenerator.FreeTypeFontParameter();
+        parameter.size = Math.round(10f * UNIT);
+        this.font = generator.generateFont(parameter);
+        generator.dispose();
+
+        Color textColor = new Color();
+        textColor.set(1.0f, 0.8f, 0f, 1.0f);
+        score = new Label("00", new Label.LabelStyle(font, textColor));
+        score.setX(UNIT_X * 93f);
+        score.setY(UNIT_Y * 87f);
 
         stars = new ArrayList<Image>();
         for (int j = 0; j < 5; ++j) {
@@ -95,6 +138,9 @@ public class GameScreen extends AbstractScreen  {
             previousPlayerPositions.add(new Float[]{0f, 0f});
         }
 
+        enemyTexture = new Texture("Enemy.png");
+        flameTexture = new Texture("Triangle.png");
+
         //this.addActor(platformObject);
         this.addActor(lighteningImage);
         this.addActor(moonGlow);
@@ -102,9 +148,21 @@ public class GameScreen extends AbstractScreen  {
         this.addActor(backgroundManager);
         this.addActor(player);
         this.addActor(rainManager);
+        this.addActor(score);
 
         Cursor cursor = Gdx.graphics.newCursor(squarePixmap, 0, 0);
         Gdx.graphics.setCursor(cursor);
+    }
+
+    public void setXY(float x, float y) {
+        /*if (y > 1) {
+            if (y <= 80 && y > 1) {
+                addY = 80;
+            } else {
+                addX = x;
+                addY = y;
+            }
+        }*/
     }
 
     public void setBackgroundColor(Themes theme) {
@@ -135,14 +193,25 @@ public class GameScreen extends AbstractScreen  {
 
     @Override
     public void update() {
+        if (dead) {
+            explosion.setScale(explosion.getScaleX() + 0.15f, explosion.getScaleX() + 0.15f);
+            explosion.setX(player.getX() + player.getWidth() / 2f - explosion.getWidth() / 2f * explosion.getScaleX());
+            explosion.setY(player.getY() + player.getHeight() / 2f - explosion.getWidth() / 2f * explosion.getScaleX());
+            if (explosion.getScaleX() > 1) {
+                explosion.setColor(1.0f, 1.0f, 1.0f, 1.0f - explosion.getScaleX() / 3);
+                game.setNewGameScreen();
+            }
+            return;
+        }
         enemySpawnCount--;
 
         previousPlayerPositions.remove(0);
         previousPlayerPositions.add(new Float[]{player.getX(), player.getY()});
 
         if (enemySpawnCount == 0) {
-            enemySpawnCount = 250;
-            Enemy enemy = new Enemy(UNIT_X, UNIT_Y);
+            enemySpawnCount = spawnCountResetVal;
+            spawnCountResetVal = Math.max(80, spawnCountResetVal - 15);
+            Enemy enemy = new Enemy(UNIT_X, UNIT_Y, enemyTexture, flameTexture);
             enemy.setX(-50f * UNIT_X + (Math.random() > 0.5 ? SCREEN_WIDTH * 2f : 0));
             enemy.setY((float)Math.random() * SCREEN_HEIGHT);
             enemies.add(enemy);
@@ -151,7 +220,16 @@ public class GameScreen extends AbstractScreen  {
 
         for (int i = 0; i < enemies.size(); i++) {
             enemies.get(i).update(previousPlayerPositions.get(0));
+            if (!enemies.get(i).isDead() && Math.abs(player.getX() + player.getWidth() / 2f - enemies.get(i).getX() - enemies.get(i).getWidth() / 2f) < player.getWidth() / 2f &&
+                    Math.abs(player.getY() + player.getHeight() / 2f - enemies.get(i).getY() - enemies.get(i).getHeight() / 2f) < player.getHeight() / 2f) {
+                dead = true;
+                explosion.setX(player.getX() + player.getWidth() / 2f);
+                explosion.setY(player.getY() + player.getHeight() / 2f);
+                this.addActor(explosion);
+            }
             if (enemies.get(i).isDead() && enemies.get(i).getY() + enemies.get(i).getHeight() < 0) {
+                scoreCount++;
+                score.setText((scoreCount < 10 ? "0" : "") + scoreCount);
                 enemies.get(i).remove();
                 enemies.remove(enemies.get(i));
                 i--;
@@ -166,7 +244,9 @@ public class GameScreen extends AbstractScreen  {
         } else if (lighteningCounter == 0) {
             lighteningImage.setColor(1.0f, 1.0f, 1.0f, 1.0f);
             lighteningAlpha = 1.0f;
-            lighteningCounter = (int)(Math.random() * 100 + 150);
+            lighteningCounter = (int)(Math.random() * 200 + 280);
+            thunder.play(1f);
+
         }
 
         if (lighteningAlpha > 0) {
@@ -177,7 +257,7 @@ public class GameScreen extends AbstractScreen  {
             lighteningImage.setColor(1.0f, 1.0f, 1.0f, lighteningAlpha);
         }
 
-        if (smokeCounter <= 0) {
+        /*if (smokeCounter <= 0) {
             smokeCounter = 20;
             Image smoke = new Image(squareTexture);
             smoke.setSize(20f, 20f);
@@ -213,11 +293,13 @@ public class GameScreen extends AbstractScreen  {
             smokeList.remove(0);
             smokeAlpha.remove(0);
         }
+        smokeCounter -= speed;*/
 
-        float xMove = (targetX - player.getX()) / 15f;
-        float yMove = (targetY - player.getY()) / 15f;
+        float xTarget = (addX + 200) / 500 * SCREEN_WIDTH;
+        float yTarget = (addY - 80) / 600 * SCREEN_HEIGHT;
+        float xMove = (xTarget - player.getX()) / 15f;
+        float yMove = (yTarget - player.getY()) / 15f;
         float speed = (float)Math.sqrt(xMove * xMove + yMove * yMove);
-        smokeCounter -= speed;
 
         backgroundManager.update((player.getX() - SCREEN_WIDTH / 2f) / SCREEN_WIDTH, (player.getY() - SCREEN_HEIGHT / 2f) / SCREEN_HEIGHT);
 
@@ -269,10 +351,16 @@ public class GameScreen extends AbstractScreen  {
 
     @Override
     public void dispose() {
-        super.dispose();
+        //super.dispose();
         player.dispose();
         backgroundManager.dispose();
         squareTexture.dispose();
-        squarePixmap.dispose();
+        starTexture.dispose();
+        moonTexture.dispose();
+        moonGlowTexture.dispose();
+        explosionTexture.dispose();
+        enemyTexture.dispose();
+        flameTexture.dispose();
+        rainManager.dispose();
     }
 }

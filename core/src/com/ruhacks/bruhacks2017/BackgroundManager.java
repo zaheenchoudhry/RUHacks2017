@@ -109,6 +109,5 @@ public class BackgroundManager extends Group {
     public void dispose() {
         mountainTexture.dispose();
         squareTexture.dispose();
-        squarePixmap.dispose();
     }
 }

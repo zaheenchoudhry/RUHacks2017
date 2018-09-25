@@ -9,26 +9,23 @@ public class Enemy extends Group {
     boolean dead;
     float unitX, unitY;
     private Image enemy, flame;
-    private Texture enemyTexture, flameTexture;
     private float width, height, speed;
     private boolean[] visitiedQuadrants;
     private int initialQuadrant;
 
-    public Enemy(float unitX, float unitY) {
+    public Enemy(float unitX, float unitY, Texture enemyTexture, Texture flameTexture) {
         dead = false;
         this.unitX = unitX;
         this.unitY = unitY;
-        this.speed = (0.3f + (float)Math.random() * 0.2f) * unitX;
+        this.speed = (0.25f + (float)Math.random() * 0.25f) * unitX;
         height = 10f * unitY;
         width = height * (131f / 200f);
         initialQuadrant = -1;
         visitiedQuadrants = new boolean[]{false, false, false, false, false, false, false, false};
 
-        enemyTexture = new Texture("Enemy.png");
         enemy = new Image(enemyTexture);
         enemy.setSize(width, height);
 
-        flameTexture = new Texture("Triangle.png");
         flame = new Image(flameTexture);
         flame.setColor(1.0f, 0.7f, 0, 1.0f);
 
@@ -115,7 +112,5 @@ public class Enemy extends Group {
     }
 
     public void dispose() {
-        enemyTexture.dispose();
-        flameTexture.dispose();
     }
 }

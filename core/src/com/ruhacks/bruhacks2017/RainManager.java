@@ -61,6 +61,5 @@ public class RainManager extends Group {
 
     public void dispose() {
         squareTexture.dispose();
-        squarePixmap.dispose();
     }
 }

@@ -12,6 +12,7 @@ public class Player extends Group {
     private Texture playerTexture, flameTexture;
     //private float speedConstant, currentSpeed;
     private float width, height;
+    private float sineCounter;
 
     public Player(float unitX, float unitY) {
         this.unitX = unitX;
@@ -20,6 +21,7 @@ public class Player extends Group {
         //currentSpeed = 0;
         height = 15f * unitY;
         width = height * (117f / 200f);
+        sineCounter = 0;
 
         playerTexture = new Texture("Player.png");
         player = new Image(playerTexture);
@@ -55,7 +57,10 @@ public class Player extends Group {
     }
 
     public void update(float playerSpeed) {
+        sineCounter += 0.08f;
+        sineCounter %= (float)Math.PI * 2f;
         this.rotateBy(-this.getRotation() / 8f);
+        player.setY(4f * (float)Math.sin(sineCounter));
 
         float flameWidth = (float)Math.random() * 10f + 9f;
         float flameHeight = (float)Math.random() * 10f + 15f + 40f * (playerSpeed / 40f);

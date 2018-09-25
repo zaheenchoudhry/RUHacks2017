@@ -2,13 +2,28 @@ package com.ruhacks.bruhacks2017;
 
 import com.badlogic.gdx.Game;
 
+import java.io.IOException;
+
 public class MainActivity extends Game {
 
 	private GameScreen gameScreen;
-	
+	private LeapClient leap;
 	@Override
-	public void create () {
+	public void create() {
+		try {
+			gameScreen = new GameScreen(this);
+			leap = new LeapClient(gameScreen);
+			leap.start();
+			setScreen(gameScreen);
+		} catch (Exception ex) {
+
+		}
+	}
+
+	public void setNewGameScreen() {
+		gameScreen.dispose();
 		gameScreen = new GameScreen(this);
+		leap.setGameScreen(gameScreen);
 		setScreen(gameScreen);
 	}
 
